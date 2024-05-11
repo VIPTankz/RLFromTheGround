@@ -5,6 +5,7 @@ import torch
 import gymnasium as gym
 import os
 import argparse
+
 def make_env(game):
 
     return gym.make("ALE/" + game + "-ram-v5")
