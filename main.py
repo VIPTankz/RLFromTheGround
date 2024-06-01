@@ -1,5 +1,5 @@
 
-from agent import Agent
+from agent import DQN, DoubleDQN, DoubleDuellingDQN
 import numpy as np
 import time
 import torch
@@ -25,7 +25,9 @@ if __name__ == '__main__':
     env = make_env(game)
 
     agent_name = "Agent"
-    agent = Agent(gamma=0.99, epsilon=1, lr=0.0008,input_dims=env.observation_space.shape[0],batch_size=32,n_actions=env.action_space.n,max_mem_size=1000000)
+    # agent = DQN(gamma=0.99, epsilon=1, lr=0.0008,input_dims=env.observation_space.shape[0],batch_size=32,n_actions=env.action_space.n,max_mem_size=1000000)
+    # agent = DoubleDQN(gamma=0.99, epsilon=1, lr=0.0008,input_dims=env.observation_space.shape[0],batch_size=32,n_actions=env.action_space.n,max_mem_size=1000000)
+    agent = DoubleDuellingDQN(gamma=0.99, epsilon=1, lr=0.0008,input_dims=env.observation_space.shape[0],batch_size=32,n_actions=env.action_space.n,max_mem_size=1000000)
 
     n_steps = 5000000
     steps = 0
