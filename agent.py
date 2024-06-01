@@ -21,6 +21,7 @@ class Agent:
         self.replace_target = 100
         self.epsilon = EpsilonGreedy()
         self.device = T.device('cuda:0' if T.cuda.is_available() else 'cpu')
+        # self.device = T.device('cpu')
 
         self.online_net = DeepQNetwork(lr, n_actions=n_actions,
                                    input_dims=input_dims,
@@ -35,7 +36,7 @@ class Agent:
         self.optimizer = optim.Adam(self.online_net.parameters(), lr=lr)
         self.loss = nn.MSELoss()
 
-        self.replay_buffer = ReplayBuffer(max_size=100000, input_shape=10, n_actions=10 ,device=self.device)
+        self.replay_buffer = ReplayBuffer(max_size=100000, input_shape=input_dims, n_actions=n_actions ,device=self.device)
         self.min_sample_size = 1000
 
     def store_transition(self, state, action, reward, state_, terminal):
@@ -45,7 +46,7 @@ class Agent:
 
     def choose_action(self, observation):
         if np.random.random() > self.epsilon.value:
-            state = T.tensor([observation]).to(self.device)
+            state = T.tensor(np.array([observation/255]), dtype=T.float32).to(self.device)
             actions = self.online_net.forward(state)
             action = T.argmax(actions).item()
         else:
@@ -57,14 +58,14 @@ class Agent:
         if self.mem_cntr < self.min_sample_size:
             return
 
-        self.online_net.optimizer.zero_grad()
+        self.optimizer.zero_grad()
 
         max_mem = min(self.mem_cntr, self.mem_size)
 
         batch = np.random.choice(max_mem, self.batch_size, replace=False)
         batch_index = np.arange(self.batch_size, dtype=np.int32)
 
-        states, actions, rewards, states_, terminals = self.replay_buffer.sample_buffer(batch)
+        states, actions, rewards, states_, terminals = self.replay_buffer.sample_buffer(self.batch_size)
 
         q_pred = self.online_net.forward(states)[batch_index, actions]
         with T.no_grad():
@@ -73,7 +74,7 @@ class Agent:
 
             q_target = rewards + self.gamma*T.max(q_next_target, dim=1)[0]
 
-        loss = self.online_net.loss(q_target, q_pred).to(self.device)
+        loss = self.loss(q_target, q_pred).to(self.device)
 
         loss.backward()
 

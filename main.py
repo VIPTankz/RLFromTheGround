@@ -1,4 +1,5 @@
 
+from agent import Agent
 import numpy as np
 import time
 import torch
@@ -24,7 +25,7 @@ if __name__ == '__main__':
     env = make_env(game)
 
     agent_name = "Agent"
-    agent = None
+    agent = Agent(gamma=0.99, epsilon=1, lr=0.0008,input_dims=env.observation_space.shape[0],batch_size=32,n_actions=env.action_space.n,max_mem_size=1000000)
 
     n_steps = 5000000
     steps = 0
@@ -38,8 +39,8 @@ if __name__ == '__main__':
 
     while steps < n_steps:
 
-        #action = agent.choose_action(observation)  # this takes and return batches
-        action = env.action_space.sample()
+        action = agent.choose_action(observation)
+        # action = env.action_space.sample()
 
         observation_, reward, done_, trun_, info = env.step(action)
         done_ = np.logical_or(done_, trun_)
@@ -47,11 +48,11 @@ if __name__ == '__main__':
 
         score += reward
 
-        #agent.learn()
+        agent.learn()
 
         reward = np.clip(reward, -1., 1.)
 
-        #agent.store_transition(observation, action, reward, done_, observation_)
+        agent.store_transition(observation, action, reward, observation_, done_)
 
         observation = observation_
 
@@ -65,8 +66,7 @@ if __name__ == '__main__':
             avg_score = np.mean(scores[-50:])
 
             if episodes % 1 == 0:
-                print('{} {} avg score {:.2f} total_steps {:.0f} fps {:.2f}'
-                      .format(agent_name, game, avg_score, steps, (steps - last_steps) / (time.time() - last_time)), flush=True)
+                print('{} {} avg score {:.2f} total_steps {:.0f} fps {:.2f}'.format(agent_name, game, avg_score, steps, (steps - last_steps) / (time.time() - last_time)), flush=True)
                 last_steps = steps
                 last_time = time.time()
 
