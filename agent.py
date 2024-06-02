@@ -9,7 +9,8 @@ from replay_buffer import ReplayBuffer
 
 
 class DQN:
-    def __init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions,max_mem_size=100000, eps_steps=100000):
+    def __init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions, max_mem_size=100000, eps_steps=100000,
+                 fc1_dims=256, fc2_dims=256):
         self.gamma = gamma
         self.lr = lr
         self.n_actions = n_actions
@@ -23,20 +24,23 @@ class DQN:
         self.device = T.device('cuda:0' if T.cuda.is_available() else 'cpu')
         # self.device = T.device('cpu')
 
-        self.online_net, self.target_net = self.create_nets()
+        self.online_net, self.target_net = self.create_nets(fc1_dims, fc2_dims)
 
         self.update_n_steps = 100
 
         self.optimizer = optim.Adam(self.online_net.parameters(), lr=lr)
         self.loss = nn.MSELoss()
 
-        self.replay_buffer = ReplayBuffer(max_size=100000, input_shape=input_dims, n_actions=n_actions ,device=self.device)
+        self.replay_buffer = ReplayBuffer(max_size=100000, input_shape=input_dims, n_actions=n_actions,
+                                          device=self.device)
         self.min_sample_size = 1000
 
-    def create_nets(self):
-        online_net = DeepQNetwork(self.lr, n_actions=self.n_actions, input_dims=self.input_dims, fc1_dims=256, fc2_dims=256, device=self.device)
+    def create_nets(self, fc1_dims, fc2_dims):
+        online_net = DeepQNetwork(self.lr, n_actions=self.n_actions, input_dims=self.input_dims, fc1_dims=fc1_dims,
+                                  fc2_dims=fc2_dims, device=self.device)
 
-        target_net = DeepQNetwork(self.lr, n_actions=self.n_actions, input_dims=self.input_dims, fc1_dims=256, fc2_dims=256, device=self.device)
+        target_net = DeepQNetwork(self.lr, n_actions=self.n_actions, input_dims=self.input_dims, fc1_dims=fc1_dims,
+                                  fc2_dims=fc2_dims, device=self.device)
 
         return online_net, target_net
 
@@ -47,7 +51,7 @@ class DQN:
 
     def choose_action(self, observation):
         if np.random.random() > self.epsilon.value:
-            state = T.tensor(np.array([observation/255]), dtype=T.float32).to(self.device)
+            state = T.tensor(np.array([observation / 255]), dtype=T.float32).to(self.device)
             actions = self.online_net.forward(state)
             action = T.argmax(actions).item()
         else:
@@ -60,7 +64,7 @@ class DQN:
             q_next_target = self.target_net.forward(states_)
             q_next_target[terminals] = 0.0
 
-            q_target = rewards + self.gamma*T.max(q_next_target, dim=1)[0]
+            q_target = rewards + self.gamma * T.max(q_next_target, dim=1)[0]
         return q_target
 
     def learn(self):
@@ -76,11 +80,15 @@ class DQN:
         q_pred = self.online_net.forward(states)[batch_index, actions]
         q_target = self.compute_target(rewards, states_, terminals)
 
+        if np.random.random() > 0.99:
+            print("hi")
+            print(q_pred[0])
+            print(q_target[0])
         loss = self.loss(q_target, q_pred).to(self.device)
 
         loss.backward()
 
-        T.nn.utils.clip_grad_norm_(self.online_net.parameters(),10)
+        T.nn.utils.clip_grad_norm_(self.online_net.parameters(), 10)
 
         self.optimizer.step()
 
@@ -95,10 +103,13 @@ class DQN:
 
 class DoubleDQN(DQN):
     """Double DQN"""
-    def __init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions,max_mem_size=100000, eps_steps=100000):
-        DQN.__init__(self, gamma,epsilon, lr, input_dims, batch_size, n_actions, max_mem_size, eps_steps)
 
-    def compute_target(self,rewards, states_, terminals):
+    def __init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions, max_mem_size=100000, eps_steps=100000,
+                 fc1_dims=256, fc2_dims=256):
+        DQN.__init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions, max_mem_size, eps_steps,
+                 fc1_dims=fc1_dims, fc2_dims=fc2_dims)
+
+    def compute_target(self, rewards, states_, terminals):
         with T.no_grad():
             batch_index = T.arange(self.batch_size, dtype=T.int32)
             q_next_target = self.target_net.forward(states_)
@@ -107,33 +118,42 @@ class DoubleDQN(DQN):
 
             action_index = T.argmax(online_action_values, dim=1)
 
-            q_target = rewards + self.gamma*q_next_target[batch_index,action_index]
+            q_target = rewards + self.gamma * q_next_target[batch_index, action_index]
 
             return q_target
 
+
 class DoubleDuellingDQN(DoubleDQN):
     """Double Duelling DQN"""
-    def __init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions,max_mem_size=100000, eps_steps=100000):
-        DQN.__init__(self, gamma,epsilon, lr, input_dims, batch_size, n_actions, max_mem_size, eps_steps)
 
-    def create_nets(self):
-        target_net = DuellingDeepQNetwork(self.lr, n_actions=self.n_actions, input_dims=self.input_dims, fc1_dims=256, fc2_dims=256, device=self.device)
-        online_net = DuellingDeepQNetwork(self.lr, n_actions=self.n_actions, input_dims=self.input_dims, fc1_dims=256, fc2_dims=256, device=self.device)
+    def __init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions, max_mem_size=100000, eps_steps=100000,
+                 fc1_dims=256, fc2_dims=256):
+
+        DQN.__init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions, max_mem_size, eps_steps, fc1_dims,
+                     fc2_dims)
+
+    def create_nets(self, fc1_dims, fc2_dims):
+        target_net = DuellingDeepQNetwork(self.lr, n_actions=self.n_actions, input_dims=self.input_dims, fc1_dims=fc1_dims,
+                                          fc2_dims=fc2_dims, device=self.device)
+        online_net = DuellingDeepQNetwork(self.lr, n_actions=self.n_actions, input_dims=self.input_dims, fc1_dims=fc1_dims,
+                                          fc2_dims=fc2_dims, device=self.device)
 
         return online_net, target_net
 
+
 class NStepDDDQN(DoubleDuellingDQN):
     """ double duelling DQN with n-step"""
-    def __init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions,max_mem_size=100000, eps_steps=100000):
-        DQN.__init__(self, gamma,epsilon, lr, input_dims, batch_size, n_actions, max_mem_size, eps_steps)
 
-        self.replay_buffer = ReplayBuffer(max_size=100000, input_shape=input_dims, n_actions=n_actions ,device=self.device)
+    def __init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions, max_mem_size=100000, eps_steps=100000):
+        DQN.__init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions, max_mem_size, eps_steps)
+
+        self.replay_buffer = ReplayBuffer(max_size=100000, input_shape=input_dims, n_actions=n_actions,
+                                          device=self.device)
 
     def compute_target(self, rewards, states_, terminals):
         with T.no_grad():
             q_next_target = self.target_net.forward(states_)
             q_next_target[terminals] = 0.0
 
-            q_target = rewards + self.gamma*T.max(q_next_target, dim=1)[0]
+            q_target = rewards + self.gamma * T.max(q_next_target, dim=1)[0]
         return q_target
-
