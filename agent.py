@@ -80,10 +80,6 @@ class DQN:
         q_pred = self.online_net.forward(states)[batch_index, actions]
         q_target = self.compute_target(rewards, states_, terminals)
 
-        if np.random.random() > 0.99:
-            print("hi")
-            print(q_pred[0])
-            print(q_target[0])
         loss = self.loss(q_target, q_pred).to(self.device)
 
         loss.backward()
