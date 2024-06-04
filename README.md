@@ -1,2 +1,2 @@
 # RLFromTheGround
-Testing Reinforcement Learning on Atari-5 for RAM environments, from the beginning
+Testing Reinforcement Learning on basic Atari environmnts for RAM environments, from basic DQN. Experiments use 5M Steps (20M Frames)
