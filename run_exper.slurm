@@ -6,7 +6,6 @@
 #SBATCH -p batch
 #SBATCH --job-name=Vanilla
 #SBATCH --time=40:00:00
-#SBATCH --mail-user=tjc2g19@soton.ac.uk
 #SBATCH --mail-type=ALL
 #SBATCH --account=ecsstaff
 #SBATCH --partition=amd_scavenger
