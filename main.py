@@ -62,7 +62,8 @@ if __name__ == '__main__':
     observation, info = env.reset()
     last_time = time.time()
     score = 0
-    scores = []
+    episode_scores = []
+    steps_per_episode = []
     episodes = 0
     last_steps = 1
 
@@ -85,13 +86,14 @@ if __name__ == '__main__':
         observation = observation_
 
         if done_:
-            scores.append(score)
+            episode_scores.append(score)
+            steps_per_episode.append(steps)
             score = 0
             env.reset()
 
-        if steps % 1200 == 0 and len(scores) > 0:
+        if steps % 1200 == 0 and len(episode_scores) > 0:
 
-            avg_score = np.mean(scores[-50:])
+            avg_score = np.mean(episode_scores[-50:])
 
             if episodes % 1 == 0:
                 print('{} {} avg score {:.2f} total_steps {:.0f} fps {:.2f}'.format(AGENT_NAME, game, avg_score, steps,
@@ -100,4 +102,7 @@ if __name__ == '__main__':
                 last_time = time.time()
 
     print("Finished!")
-    np.save(AGENT_NAME + ".npy", np.array(scores))
+    episode_scores = np.array(episode_scores)
+    steps_per_episode = np.array(steps_per_episode)
+    results_combined = np.column_stack((episode_scores, steps_per_episode))
+    np.save(AGENT_NAME + ".npy", results_combined)
