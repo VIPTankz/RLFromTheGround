@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --nodes=1
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=40
+#SBATCH --ntasks=5
+#SBATCH --cpus-per-task=8
 #SBATCH --mem=25000
 #SBATCH -p batch
 #SBATCH --job-name=Vanilla
