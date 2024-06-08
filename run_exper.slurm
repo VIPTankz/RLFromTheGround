@@ -8,6 +8,8 @@
 #SBATCH --time=40:00:00
 #SBATCH --mail-type=ALL
 #SBATCH --account=ecsstaff
+#SBATCH --output=worked.out
+#SBATCH --error=failed.err
 #SBATCH --partition=amd_scavenger
 #SBATCH --partition=batch
 
