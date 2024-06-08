@@ -22,7 +22,6 @@ class DQN:
         self.iter_cntr = 0
         self.epsilon = EpsilonGreedy(eps_steps=eps_steps)
         self.device = T.device('cuda:0' if T.cuda.is_available() else 'cpu')
-        # self.device = T.device('cpu')
 
         self.online_net, self.target_net = self.create_nets(fc1_dims, fc2_dims)
 
