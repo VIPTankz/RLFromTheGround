@@ -5,12 +5,13 @@ import torch.optim as optim
 import numpy as np
 from exploration import EpsilonGreedy
 from networks import DeepQNetwork, DuellingDeepQNetwork
-from replay_buffer import ReplayBuffer
+from replay_buffer import NStepReplayBuffer, ReplayBuffer
 
 
 class DQN:
     def __init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions, max_mem_size=100000, eps_steps=100000,
                  fc1_dims=256, fc2_dims=256):
+        self.name = "DQN"
         self.gamma = gamma
         self.lr = lr
         self.n_actions = n_actions
@@ -101,6 +102,7 @@ class DoubleDQN(DQN):
 
     def __init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions, max_mem_size=100000, eps_steps=100000,
                  fc1_dims=256, fc2_dims=256):
+        self.name="doubleDQN"
         DQN.__init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions, max_mem_size, eps_steps,
                  fc1_dims=fc1_dims, fc2_dims=fc2_dims)
 
@@ -124,6 +126,8 @@ class DoubleDuellingDQN(DoubleDQN):
     def __init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions, max_mem_size=100000, eps_steps=100000,
                  fc1_dims=256, fc2_dims=256):
 
+        self.name="duellingDoubleDQN"
+
         DQN.__init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions, max_mem_size, eps_steps, fc1_dims,
                      fc2_dims)
 
@@ -139,16 +143,17 @@ class DoubleDuellingDQN(DoubleDQN):
 class NStepDDDQN(DoubleDuellingDQN):
     """ double duelling DQN with n-step"""
 
-    def __init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions, max_mem_size=100000, eps_steps=100000):
-        DQN.__init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions, max_mem_size, eps_steps)
+    def __init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions,n=3, fc1_dims=256, fc2_dims=256, max_mem_size=100000, eps_steps=100000):
+        DQN.__init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions, max_mem_size, eps_steps, fc1_dims, fc2_dims)
+        self.name = "NStep3DQN"
+        self.n = n
 
-        self.replay_buffer = ReplayBuffer(max_size=100000, input_shape=input_dims, n_actions=n_actions,
-                                          device=self.device)
+        self.replay_buffer = NStepReplayBuffer(n=self.n, gamma=gamma, max_size=100000, input_shape=input_dims, n_actions=n_actions, device=self.device)
 
     def compute_target(self, rewards, states_, terminals):
         with T.no_grad():
             q_next_target = self.target_net.forward(states_)
             q_next_target[terminals] = 0.0
 
-            q_target = rewards + self.gamma * T.max(q_next_target, dim=1)[0]
+            q_target = rewards + self.gamma**self.n * T.max(q_next_target, dim=1)[0]
         return q_target

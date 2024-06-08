@@ -56,6 +56,9 @@ class NStepReplayBuffer:
         terminal_memory = deque([], maxlen=self.n)
         return state_memory, action_memory, reward_memory, next_state_memory, terminal_memory
 
+    def sample_buffer(self, batch_size):
+        return self.replay_buffer.sample_buffer(batch_size)
+
     def store_transition(self, state, action, reward, state_, done):
         if len(self.state_memory) == self.n:
             state_0 = self.state_memory[0]
