@@ -18,4 +18,4 @@ source activate BTR
 cd /home/$USER/RLFromTheGround
 pip install -e .
 
-python main.py --game BattleZone --agent-name DDQN
+python main.py --game BattleZone --agent_name DDQN

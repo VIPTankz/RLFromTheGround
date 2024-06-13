@@ -18,4 +18,4 @@ source activate BTR
 cd /home/$USER/RLFromTheGround
 pip install -e .
 
-python main.py --game Phoenix --agent-name DDQN
+python main.py --game Phoenix --agent_name DDQN
