@@ -1,0 +1,4 @@
+Experiment with LRs [1e-3, 1e-5] to start with
+layer width fc1 and fc2 dims [128, 512]
+architecture - Shared fc2 layer rather than separate for dueling
+NoisyNets - only last layer be noisy? or only last 2 layers?
