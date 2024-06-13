@@ -16,8 +16,10 @@ def non_default_args(args, parser):
     for arg in vars(args):
         user_val = getattr(args, arg)
         default_val = parser.get_default(arg)
-        if user_val != default_val:
+        if user_val != default_val and arg != "game":
             result.append(f"{arg}_{user_val}")
+
+    result.append(f"game_{game}")
     return '_'.join(result)
 
 
