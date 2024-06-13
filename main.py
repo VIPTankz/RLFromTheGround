@@ -1,27 +1,28 @@
-from agent import DQN, DoubleDQN, DoubleDuellingDQN, NStepDDDQN
+from agent import DQN, DoubleDQN, DDDQN, NStep3DQN, NoisyNStep3DQN
 import numpy as np
 import time
 import torch
 import gymnasium as gym
 import os
 import argparse
+from utils import *
 
 
 def make_env(game):
     return gym.make("ALE/" + game + "-ram-v5")
 
-
-def non_default_args(args, parser):
-    result = []
-    for arg in vars(args):
-        user_val = getattr(args, arg)
-        default_val = parser.get_default(arg)
-        if user_val != default_val and arg != "game":
-            result.append(f"{arg}_{user_val}")
-
-    result.append(f"game_{game}")
-    return '_'.join(result)
-
+def initialize_agent():
+    if agent_name=="DQN":
+        return DQN(gamma=0.99, epsilon=1, lr=lr,input_dims=env.observation_space.shape[0],batch_size=32,n_actions=env.action_space.n,max_mem_size=1000000, fc1_dims=fc1_dims, fc2_dims=fc2_dims)
+    elif agent_name=="DDQN":
+        return DoubleDQN(gamma=0.99, epsilon=1, lr=lr,input_dims=env.observation_space.shape[0],batch_size=32,n_actions=env.action_space.n,max_mem_size=1000000, fc1_dims=fc1_dims, fc2_dims=fc2_dims)
+    elif agent_name=="DDDQN":
+        return DDDQN(gamma=0.99, epsilon=1, lr=lr, input_dims=env.observation_space.shape[0], batch_size=32, n_actions=env.action_space.n, max_mem_size=1000000, fc1_dims=fc1_dims, fc2_dims=fc2_dims)
+    elif agent_name=="NStep3DQN":
+        return NStep3DQN(gamma=0.99, epsilon=1, lr=lr, input_dims=env.observation_space.shape[0], batch_size=32, n_actions=env.action_space.n, max_mem_size=1000000, fc1_dims=fc1_dims, fc2_dims=fc2_dims)
+    elif agent_name=="NoisyNStep3DQN":
+        return NoisyNStep3DQN(gamma=0.99, epsilon=1, lr=lr, input_dims=env.observation_space.shape[0], batch_size=32, n_actions=env.action_space.n, max_mem_size=1000000, fc1_dims=fc1_dims, fc2_dims=fc2_dims)
+    return None
 
 if __name__ == '__main__':
 
@@ -34,29 +35,23 @@ if __name__ == '__main__':
     parser.add_argument('--fc1', type=int, default=256)
     parser.add_argument('--fc2', type=int, default=256)
     parser.add_argument('--lr', type=float, default=1e-4)
+    parser.add_argument('--agent_name', type=str)
 
     args = parser.parse_args()
 
     game = args.game
     print("Playing Game: " + str(game))
 
+    agent_name = args.agent_name
     fc1_dims = args.fc1
     fc2_dims = args.fc2
     lr = args.lr
 
     env = make_env(game)
 
-    # agent = DQN(gamma=0.99, epsilon=1, lr=0.0008,input_dims=env.observation_space.shape[0],batch_size=32,n_actions=env.action_space.n,max_mem_size=1000000)
-    # agent = DoubleDQN(gamma=0.99, epsilon=1, lr=0.0008,input_dims=env.observation_space.shape[0],batch_size=32,n_actions=env.action_space.n,max_mem_size=1000000)
+    agent = initialize_agent()
 
-    # agent = DoubleDuellingDQN(gamma=0.99, epsilon=1, lr=lr, input_dims=env.observation_space.shape[0],
-    #                           batch_size=32, n_actions=env.action_space.n, max_mem_size=1000000, fc1_dims=fc1_dims,
-    #                           fc2_dims=fc2_dims)
-
-    agent = NStepDDDQN(gamma=0.99, epsilon=1, lr=lr, input_dims=env.observation_space.shape[0],
-                              batch_size=32, n_actions=env.action_space.n, max_mem_size=1000000, fc1_dims=fc1_dims,
-                              fc2_dims=fc2_dims)
-    AGENT_NAME = agent.name+"_"+non_default_args(args,parser)
+    AGENT_NAME = agent_name+"_"+non_default_args(args,parser)
 
     n_steps = 5000000
     steps = 0
