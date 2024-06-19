@@ -4,12 +4,12 @@
 #SBATCH --cpus-per-task=40
 #SBATCH --mem=25000
 #SBATCH -p batch
-#SBATCH --job-name=BattleZone_2
+#SBATCH --job-name=BattleZone_4
 #SBATCH --time=60:00:00
 #SBATCH --mail-type=ALL
 #SBATCH --account=ecsstaff
-#SBATCH --output=worked_battlezone_2.out
-#SBATCH --error=failed_battlezone_2.err
+#SBATCH --output=worked_battlezone_4.out
+#SBATCH --error=failed_battlezone_4.err
 #SBATCH --partition=batch
 
 module load conda/py3-latest

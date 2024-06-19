@@ -4,12 +4,12 @@
 #SBATCH --cpus-per-task=40
 #SBATCH --mem=25000
 #SBATCH -p batch
-#SBATCH --job-name=Qbert_2
+#SBATCH --job-name=Qbert_3
 #SBATCH --time=60:00:00
 #SBATCH --mail-type=ALL
 #SBATCH --account=ecsstaff
-#SBATCH --output=worked_Qbert_2.out
-#SBATCH --error=failed_Qbert_2.err
+#SBATCH --output=worked_Qbert_3.out
+#SBATCH --error=failed_Qbert_3.err
 #SBATCH --partition=batch
 
 module load conda/py3-latest
