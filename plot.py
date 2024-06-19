@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 games = ["BattleZone", "NameThisGame", "Phoenix", "Qbert"]
-agents = ["NStep3DQN", "DDQN"]
+agents = ["NStep3DQN_100k", "DDQN_100k"]
 
 
 data = {}
