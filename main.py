@@ -51,7 +51,7 @@ if __name__ == '__main__':
 
     agent = initialize_agent()
 
-    AGENT_NAME = agent_name+"_"+non_default_args(args,parser)
+    AGENT_NAME = agent_name+"_"+non_default_args(args, parser)
 
     n_steps = 5000000
     steps = 0
