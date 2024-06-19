@@ -13,15 +13,15 @@ def make_env(game):
 
 def initialize_agent():
     if agent_name=="DQN":
-        return DQN(gamma=0.99, epsilon=1, lr=lr,input_dims=env.observation_space.shape[0],batch_size=32,n_actions=env.action_space.n,max_mem_size=1000000, fc1_dims=fc1_dims, fc2_dims=fc2_dims)
+        return DQN(gamma=0.99, epsilon=1, lr=lr,input_dims=env.observation_space.shape[0],batch_size=32,n_actions=env.action_space.n,max_mem_size=1000000, fc1_dims=fc1_dims, fc2_dims=fc2_dims, update_target=update_target)
     elif agent_name=="DDQN":
-        return DoubleDQN(gamma=0.99, epsilon=1, lr=lr,input_dims=env.observation_space.shape[0],batch_size=32,n_actions=env.action_space.n,max_mem_size=1000000, fc1_dims=fc1_dims, fc2_dims=fc2_dims)
+        return DoubleDQN(gamma=0.99, epsilon=1, lr=lr,input_dims=env.observation_space.shape[0],batch_size=32,n_actions=env.action_space.n,max_mem_size=1000000, fc1_dims=fc1_dims, fc2_dims=fc2_dims, update_target=update_target)
     elif agent_name=="DDDQN":
-        return DDDQN(gamma=0.99, epsilon=1, lr=lr, input_dims=env.observation_space.shape[0], batch_size=32, n_actions=env.action_space.n, max_mem_size=1000000, fc1_dims=fc1_dims, fc2_dims=fc2_dims)
+        return DDDQN(gamma=0.99, epsilon=1, lr=lr, input_dims=env.observation_space.shape[0], batch_size=32, n_actions=env.action_space.n, max_mem_size=1000000, fc1_dims=fc1_dims, fc2_dims=fc2_dims, update_target=update_target)
     elif agent_name=="NStep3DQN":
-        return NStep3DQN(gamma=0.99, epsilon=1, lr=lr, input_dims=env.observation_space.shape[0], batch_size=32, n_actions=env.action_space.n, max_mem_size=1000000, fc1_dims=fc1_dims, fc2_dims=fc2_dims)
+        return NStep3DQN(gamma=0.99, epsilon=1, lr=lr, input_dims=env.observation_space.shape[0], batch_size=32, n_actions=env.action_space.n, max_mem_size=1000000, fc1_dims=fc1_dims, fc2_dims=fc2_dims, update_target=update_target)
     elif agent_name=="NoisyNStep3DQN":
-        return NoisyNStep3DQN(gamma=0.99, epsilon=1, lr=lr, input_dims=env.observation_space.shape[0], batch_size=32, n_actions=env.action_space.n, max_mem_size=1000000, fc1_dims=fc1_dims, fc2_dims=fc2_dims)
+        return NoisyNStep3DQN(gamma=0.99, epsilon=1, lr=lr, input_dims=env.observation_space.shape[0], batch_size=32, n_actions=env.action_space.n, max_mem_size=1000000, fc1_dims=fc1_dims, fc2_dims=fc2_dims, update_target=update_target)
     return None
 
 if __name__ == '__main__':
@@ -35,6 +35,7 @@ if __name__ == '__main__':
     parser.add_argument('--fc1', type=int, default=256)
     parser.add_argument('--fc2', type=int, default=256)
     parser.add_argument('--lr', type=float, default=1e-4)
+    parser.add_argument('--update_target', type=int, default=100)
     parser.add_argument('--agent_name', type=str)
 
     args = parser.parse_args()
@@ -45,6 +46,7 @@ if __name__ == '__main__':
     agent_name = args.agent_name
     fc1_dims = args.fc1
     fc2_dims = args.fc2
+    update_target = args.update_target
     lr = args.lr
 
     env = make_env(game)

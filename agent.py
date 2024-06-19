@@ -11,7 +11,7 @@ from replay_buffer import NStepReplayBuffer, ReplayBuffer
 
 class DQN:
     def __init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions, max_mem_size=100000, eps_steps=100000,
-                 fc1_dims=256, fc2_dims=256):
+                 fc1_dims=256, fc2_dims=256, update_target=100):
         self.name = "DQN"
         self.gamma = gamma
         self.lr = lr
@@ -26,7 +26,7 @@ class DQN:
 
         self.online_net, self.target_net = self.create_nets(fc1_dims, fc2_dims)
 
-        self.update_n_steps = 100
+        self.update_target = update_target
 
         self.optimizer = optim.Adam(self.online_net.parameters(), lr=lr)
         self.loss = nn.MSELoss()
@@ -89,7 +89,7 @@ class DQN:
 
         self.epsilon.decrease()
         self.iter_cntr += 1
-        if self.iter_cntr % self.update_n_steps == 0:
+        if self.iter_cntr % self.update_target == 0:
             self.update_target_network()
 
     def update_target_network(self):
@@ -100,10 +100,10 @@ class DoubleDQN(DQN):
     """Double DQN"""
 
     def __init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions, max_mem_size=100000, eps_steps=100000,
-                 fc1_dims=256, fc2_dims=256):
+                 fc1_dims=256, fc2_dims=256, update_target=100):
         self.name="doubleDQN"
         DQN.__init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions, max_mem_size, eps_steps,
-                 fc1_dims=fc1_dims, fc2_dims=fc2_dims)
+                 fc1_dims=fc1_dims, fc2_dims=fc2_dims, update_target=update_target)
 
     def compute_target(self, rewards, states_, terminals):
         with T.no_grad():
@@ -123,12 +123,12 @@ class DDDQN(DoubleDQN):
     """Double Duelling DQN"""
 
     def __init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions, max_mem_size=100000, eps_steps=100000,
-                 fc1_dims=256, fc2_dims=256):
+                 fc1_dims=256, fc2_dims=256, update_target=100):
 
         self.name="duellingDoubleDQN"
 
         DoubleDQN.__init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions, max_mem_size, eps_steps, fc1_dims,
-                     fc2_dims)
+                     fc2_dims, update_target)
 
     def create_nets(self, fc1_dims, fc2_dims):
         target_net = DuellingDeepQNetwork(self.lr, n_actions=self.n_actions, input_dims=self.input_dims, fc1_dims=fc1_dims, fc2_dims=fc2_dims, device=self.device)
@@ -140,8 +140,8 @@ class DDDQN(DoubleDQN):
 class NStep3DQN(DDDQN):
     """ double duelling DQN with n-step"""
 
-    def __init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions,n=3, fc1_dims=256, fc2_dims=256, max_mem_size=100000, eps_steps=100000):
-        DDDQN.__init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions, max_mem_size, eps_steps, fc1_dims, fc2_dims)
+    def __init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions,n=3, fc1_dims=256, fc2_dims=256, max_mem_size=100000, eps_steps=100000, update_target=100):
+        DDDQN.__init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions, max_mem_size, eps_steps, fc1_dims, fc2_dims, update_target)
         self.name = "NStep3DQN"
         self.n = n
 
@@ -157,8 +157,8 @@ class NStep3DQN(DDDQN):
 
 class NoisyNStep3DQN(NStep3DQN):
     """ Nstep 3DQN with noisy nets"""
-    def __init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions,n=3, fc1_dims=256, fc2_dims=256, max_mem_size=100000, eps_steps=100000):
-        NStep3DQN.__init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions, n=n, fc1_dims=fc1_dims, fc2_dims=fc2_dims, max_mem_size=max_mem_size, eps_steps=eps_steps)
+    def __init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions,n=3, fc1_dims=256, fc2_dims=256, max_mem_size=100000, eps_steps=100000, update_target=100):
+        NStep3DQN.__init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions, n=n, fc1_dims=fc1_dims, fc2_dims=fc2_dims, max_mem_size=max_mem_size, eps_steps=eps_steps, update_target=update_target)
 
     def create_nets(self, fc1_dims, fc2_dims):
         target_net = DuellingDeepQNetwork(self.lr, n_actions=self.n_actions, input_dims=self.input_dims, fc1_dims=fc1_dims, fc2_dims=fc2_dims, device=self.device,linear_layer=FactorizedNoisyLinear)
