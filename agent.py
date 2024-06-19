@@ -32,7 +32,7 @@ class DQN:
         self.optimizer = optim.Adam(self.online_net.parameters(), lr=lr)
         self.loss = nn.MSELoss()
 
-        self.replay_buffer = ReplayBuffer(max_size=100000, input_shape=input_dims, n_actions=n_actions,
+        self.replay_buffer = ReplayBuffer(max_size=max_mem_size, input_shape=input_dims, n_actions=n_actions,
                                           device=self.device)
         self.min_sample_size = 1000
 
@@ -149,7 +149,7 @@ class NStep3DQN(DDDQN):
         self.name = "NStep3DQN"
         self.n = n
 
-        self.replay_buffer = NStepReplayBuffer(n=self.n, gamma=gamma, max_size=100000, input_shape=input_dims, n_actions=n_actions, device=self.device)
+        self.replay_buffer = NStepReplayBuffer(n=self.n, gamma=gamma, max_size=max_mem_size, input_shape=input_dims, n_actions=n_actions, device=self.device)
 
     def compute_target(self, rewards, states_, terminals):
         with T.no_grad():
