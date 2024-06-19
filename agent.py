@@ -18,7 +18,6 @@ class DQN:
         self.n_actions = n_actions
         self.input_dims = input_dims
         self.action_space = [i for i in range(n_actions)]
-        self.mem_size = max_mem_size
         self.batch_size = batch_size
         self.mem_cntr = 0
         self.iter_cntr = 0

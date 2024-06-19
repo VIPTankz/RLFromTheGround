@@ -53,7 +53,7 @@ if __name__ == '__main__':
 
     AGENT_NAME = agent_name+"_"+non_default_args(args,parser)
 
-    n_steps = 5000000
+    n_steps = 4000000
     steps = 0
     done = False
     observation, info = env.reset()

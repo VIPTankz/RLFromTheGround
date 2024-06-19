@@ -38,8 +38,8 @@ class DuellingDeepQNetwork(nn.Module):
         self.n_actions = n_actions
         self.fc1 = linear_layer(self.input_dims, self.fc1_dims)
 
-        self.fc2_advantage = linear_layer(self.fc1_dims, self.fc2_dims)
-        self.fc2_value = linear_layer(self.fc1_dims, self.fc2_dims)
+        # self.fc2_advantage = linear_layer(self.fc1_dims, self.fc2_dims)
+        # self.fc2_value = linear_layer(self.fc1_dims, self.fc2_dims)
 
         self.value_stream = linear_layer(self.fc2_dims, 1)
         self.advantage_stream = linear_layer(self.fc2_dims, self.n_actions)
@@ -50,11 +50,11 @@ class DuellingDeepQNetwork(nn.Module):
     def forward(self, state):
         x = F.relu(self.fc1(state))
 
-        x_value = F.relu(self.fc2_value(x))
-        x_advantage = F.relu(self.fc2_advantage(x))
+        # x_value = F.relu(self.fc2_value(x))
+        # x_advantage = F.relu(self.fc2_advantage(x))
 
-        state_value = self.value_stream(x_value)
-        advantages = self.advantage_stream(x_advantage)
+        state_value = self.value_stream(x)
+        advantages = self.advantage_stream(x)
 
         return state_value + advantages - T.mean(advantages, dim=1, keepdim=True)
 
@@ -65,7 +65,7 @@ class DuellingDeepQNetwork(nn.Module):
 
 class FactorizedNoisyLinear(nn.Module):
     """ The factorized Gaussian noise layer for noisy-nets dqn. """
-    def __init__(self, in_features: int, out_features: int, sigma_0=0.1) -> None:
+    def __init__(self, in_features: int, out_features: int, sigma_0=0.5) -> None:
         super().__init__()
         self.in_features = in_features
         self.out_features = out_features
