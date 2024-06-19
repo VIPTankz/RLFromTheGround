@@ -18,4 +18,4 @@ source activate BTR
 cd /home/$USER/RLFromTheGround
 pip install -e .
 
-python main.py --game NameThisGame --agent_name DDQN
+python main.py --game NameThisGame --agent_name NStep3DQN

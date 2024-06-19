@@ -41,8 +41,8 @@ class DuellingDeepQNetwork(nn.Module):
         # self.fc2_advantage = linear_layer(self.fc1_dims, self.fc2_dims)
         # self.fc2_value = linear_layer(self.fc1_dims, self.fc2_dims)
 
-        self.value_stream = linear_layer(self.fc2_dims, 1)
-        self.advantage_stream = linear_layer(self.fc2_dims, self.n_actions)
+        self.value_stream = linear_layer(self.fc1_dims, 1)
+        self.advantage_stream = linear_layer(self.fc1_dims, self.n_actions)
 
         self.device = device
         self.to(self.device)
