@@ -5,7 +5,7 @@
 #SBATCH --mem=25000
 #SBATCH -p batch
 #SBATCH --job-name=Phoenix_1
-#SBATCH --time=40:00:00
+#SBATCH --time=60:00:00
 #SBATCH --mail-type=ALL
 #SBATCH --account=ecsstaff
 #SBATCH --output=worked_Phoenix_1.out

@@ -132,10 +132,8 @@ class DDDQN(DoubleDQN):
                      fc2_dims)
 
     def create_nets(self, fc1_dims, fc2_dims):
-        target_net = DuellingDeepQNetwork(self.lr, n_actions=self.n_actions, input_dims=self.input_dims, fc1_dims=fc1_dims,
-                                          fc2_dims=fc2_dims, device=self.device)
-        online_net = DuellingDeepQNetwork(self.lr, n_actions=self.n_actions, input_dims=self.input_dims, fc1_dims=fc1_dims,
-                                          fc2_dims=fc2_dims, device=self.device)
+        target_net = DuellingDeepQNetwork(self.lr, n_actions=self.n_actions, input_dims=self.input_dims, fc1_dims=fc1_dims, fc2_dims=fc2_dims, device=self.device)
+        online_net = DuellingDeepQNetwork(self.lr, n_actions=self.n_actions, input_dims=self.input_dims, fc1_dims=fc1_dims,fc2_dims=fc2_dims, device=self.device)
 
         return online_net, target_net
 

@@ -65,7 +65,7 @@ class DuellingDeepQNetwork(nn.Module):
 
 class FactorizedNoisyLinear(nn.Module):
     """ The factorized Gaussian noise layer for noisy-nets dqn. """
-    def __init__(self, in_features: int, out_features: int, sigma_0=0.5) -> None:
+    def __init__(self, in_features: int, out_features: int, sigma_0=0.1) -> None:
         super().__init__()
         self.in_features = in_features
         self.out_features = out_features
