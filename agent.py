@@ -32,7 +32,7 @@ class DQN:
         self.loss = nn.MSELoss()
 
         self.replay_buffer = ReplayBuffer(max_size=max_mem_size, input_shape=input_dims, n_actions=n_actions,device=self.device)
-        self.min_sample_size = 1000
+        self.min_sample_size = 80000
 
     def create_nets(self, fc1_dims, fc2_dims):
         online_net = DeepQNetwork(self.lr, n_actions=self.n_actions, input_dims=self.input_dims, fc1_dims=fc1_dims,
