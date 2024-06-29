@@ -18,4 +18,4 @@ source activate BTR
 cd /home/$USER/RLFromTheGround
 pip install -e .
 
-python main.py --game Phoenix --agent_name NoisyNStep3DQN
+python main.py --game Phoenix --agent_name NoisyNStep3DQN --update_target 1000

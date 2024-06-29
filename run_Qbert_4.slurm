@@ -18,4 +18,4 @@ source activate BTR
 cd /home/$USER/RLFromTheGround
 pip install -e .
 
-python main.py --game Qbert --agent_name NStep3DQN --lr 1e-5
+python main.py --game Qbert --agent_name NStep3DQN --lr 1e-5 --fc1 128
