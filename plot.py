@@ -3,20 +3,22 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 games = ["BattleZone", "NameThisGame", "Phoenix", "Qbert"]
-agents = ["NStep3DQN_100k", "DDQN_100k"]
+agents = ["NoisyNStep3DQN", "NoisyNStep3DQN_update_target_1000", "NStep3DQN_fc1_64", "NStep3DQN_fc1_128",
+          "NStep3DQN_fc1_128_lr_1e5", "NStep3DQN", "NStep3DQN_lr_1e5", "NStep3DQN_lr_1e5_update_target_1000"]
 
+agents = ["NStep3DQN", "NStep3DQN_fc1_128", "NStep3DQN_fc1_64"]
 
 data = {}
 for game in games:
     data[game] = {}
     for agent in agents:
-        filename = "results\\" + agent + f"\\{agent}_game_{game}.npy"
+        filename = "results\\" + f"\\{agent}_game_{game}.npy"
         try:
             data[game][agent] = np.load(filename, allow_pickle=True)
         except FileNotFoundError:
             print(f"File {filename} not found.")
 
-def smooth_scores(data, window=100):
+def smooth_scores(data, window=50):
     df = pd.DataFrame(data, columns=['score', 'timesteps'])
     df['smoothed_score'] = df['score'].rolling(window, min_periods=1).mean()
     return df['smoothed_score'], df['timesteps']
