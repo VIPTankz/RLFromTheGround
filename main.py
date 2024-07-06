@@ -13,15 +13,20 @@ def make_env(game):
 
 def initialize_agent():
     if agent_name=="DQN":
-        return DQN(gamma=0.99, epsilon=1, lr=lr,input_dims=env.observation_space.shape[0],batch_size=32,n_actions=env.action_space.n,max_mem_size=1000000, fc1_dims=fc1_dims, fc2_dims=fc2_dims, update_target=update_target)
+        return DQN(gamma=0.99, epsilon=1, lr=lr,input_dims=env.observation_space.shape[0],batch_size=batch_size,
+                   n_actions=env.action_space.n,max_mem_size=1000000, fc1_dims=fc1_dims, fc2_dims=fc2_dims, update_target=update_target, eps_steps=eps_steps, eps_min=eps_min)
     elif agent_name=="DDQN":
-        return DoubleDQN(gamma=0.99, epsilon=1, lr=lr,input_dims=env.observation_space.shape[0],batch_size=32,n_actions=env.action_space.n,max_mem_size=1000000, fc1_dims=fc1_dims, fc2_dims=fc2_dims, update_target=update_target)
+        return DoubleDQN(gamma=0.99, epsilon=1, lr=lr,input_dims=env.observation_space.shape[0],batch_size=batch_size,
+                         n_actions=env.action_space.n,max_mem_size=1000000, fc1_dims=fc1_dims, fc2_dims=fc2_dims, update_target=update_target, eps_steps=eps_steps, eps_min=eps_min)
     elif agent_name=="DDDQN":
-        return DDDQN(gamma=0.99, epsilon=1, lr=lr, input_dims=env.observation_space.shape[0], batch_size=32, n_actions=env.action_space.n, max_mem_size=1000000, fc1_dims=fc1_dims, fc2_dims=fc2_dims, update_target=update_target)
+        return DDDQN(gamma=0.99, epsilon=1, lr=lr, input_dims=env.observation_space.shape[0], batch_size=batch_size,
+                     n_actions=env.action_space.n, max_mem_size=1000000, fc1_dims=fc1_dims, fc2_dims=fc2_dims, update_target=update_target, eps_steps=eps_steps, eps_min=eps_min)
     elif agent_name=="NStep3DQN":
-        return NStep3DQN(gamma=0.99, epsilon=1, lr=lr, input_dims=env.observation_space.shape[0], batch_size=32, n_actions=env.action_space.n, max_mem_size=1000000, fc1_dims=fc1_dims, fc2_dims=fc2_dims, update_target=update_target)
+        return NStep3DQN(gamma=0.99, epsilon=1, lr=lr, input_dims=env.observation_space.shape[0], batch_size=batch_size,
+                         n_actions=env.action_space.n, max_mem_size=1000000, fc1_dims=fc1_dims, fc2_dims=fc2_dims, update_target=update_target, eps_steps=eps_steps, eps_min=eps_min)
     elif agent_name=="NoisyNStep3DQN":
-        return NoisyNStep3DQN(gamma=0.99, epsilon=1, lr=lr, input_dims=env.observation_space.shape[0], batch_size=32, n_actions=env.action_space.n, max_mem_size=1000000, fc1_dims=fc1_dims, fc2_dims=fc2_dims, update_target=update_target)
+        return NoisyNStep3DQN(gamma=0.99, epsilon=1, lr=lr, input_dims=env.observation_space.shape[0], batch_size=batch_size
+                              , n_actions=env.action_space.n, max_mem_size=1000000, fc1_dims=fc1_dims, fc2_dims=fc2_dims, update_target=update_target, eps_steps=eps_steps, eps_min=eps_min)
     return None
 
 if __name__ == '__main__':
@@ -37,6 +42,9 @@ if __name__ == '__main__':
     parser.add_argument('--lr', type=float, default=1e-4)
     parser.add_argument('--update_target', type=int, default=100)
     parser.add_argument('--agent_name', type=str)
+    parser.add_argument('--batch_size', type=int, default=32)
+    parser.add_argument('--eps_steps', type=int, default=100000)
+    parser.add_argument('--eps_min', type=float, default=0.01)
 
     args = parser.parse_args()
 
@@ -48,6 +56,9 @@ if __name__ == '__main__':
     fc2_dims = args.fc2
     update_target = args.update_target
     lr = args.lr
+    batch_size = args.batch_size
+    eps_steps = args.eps_steps
+    eps_min = args.eps_min
 
     env = make_env(game)
 

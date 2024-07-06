@@ -3,10 +3,9 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 games = ["BattleZone", "NameThisGame", "Phoenix", "Qbert"]
-agents = ["NoisyNStep3DQN", "NoisyNStep3DQN_update_target_1000", "NStep3DQN_fc1_64", "NStep3DQN_fc1_128",
-          "NStep3DQN_fc1_128_lr_1e5", "NStep3DQN", "NStep3DQN_lr_1e5", "NStep3DQN_lr_1e5_update_target_1000"]
+agents = ["NStep3DQN_fc1_64", "NStep3DQN_fc1_128",
+          "NStep3DQN_fc1_128_lr_1e5", "NStep3DQN", "NStep3DQN_lr_1e5", "NStep3DQN_lr_1e5_update_target_1000", "NStep3DQN_update_target_1000"]
 
-agents = ["NStep3DQN", "NStep3DQN_fc1_128", "NStep3DQN_fc1_64"]
 
 data = {}
 for game in games:

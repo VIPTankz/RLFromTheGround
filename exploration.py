@@ -1,7 +1,7 @@
 class EpsilonGreedy:
     """Epsilon greedy exploration"""
-    def __init__(self, eps_steps):
-        self.min = 0.01
+    def __init__(self, eps_steps, eps_min=100000):
+        self.min = eps_min
         self.value = 1
         self.dec = (self.value - self.min) / eps_steps
 
