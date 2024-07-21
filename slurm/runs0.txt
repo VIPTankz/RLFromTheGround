@@ -1,0 +1,5 @@
+python main.py --game BattleZone
+python main.py --game DoubleDunk
+python main.py --game NameThisGame
+python main.py --game Phoenix
+python main.py --game Qbert

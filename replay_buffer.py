@@ -80,6 +80,112 @@ class NStepReplayBuffer:
         self.reward_memory.append(reward)
         self.terminal_memory.append(done)
 
+# SumTree
+# a binary tree data structure where the parent’s value is the sum of its children
+class SumTree():
+    def __init__(self, size, procgen=False):
+        self.index = 0
+        self.size = size
+        self.full = False  # Used to track actual capacity
+        self.tree_start = 2**(size-1).bit_length()-1  # Put all used node leaves on last tree level
+        self.sum_tree = np.zeros((self.tree_start + self.size,), dtype=np.float32)
+        self.max = 1  # Initial max value to return (1 = 1^ω)
+ 
+      # Updates nodes values from current tree
+    def _update_nodes(self, indices):
+        children_indices = indices * 2 + np.expand_dims([1, 2], axis=1)
+        self.sum_tree[indices] = np.sum(self.sum_tree[children_indices], axis=0)
+ 
+    # Propagates changes up tree given tree indices
+    def _propagate(self, indices):
+        parents = (indices - 1) // 2
+        unique_parents = np.unique(parents)
+        self._update_nodes(unique_parents)
+        if parents[0] != 0:
+          self._propagate(parents)
+ 
+    # Propagates single value up tree given a tree index for efficiency
+    def _propagate_index(self, index):
+        parent = (index - 1) // 2
+        left, right = 2 * parent + 1, 2 * parent + 2
+        self.sum_tree[parent] = self.sum_tree[left] + self.sum_tree[right]
+        if parent != 0:
+          self._propagate_index(parent)
+ 
+    # Updates values given tree indices
+    def update(self, indices, values):
+        self.sum_tree[indices] = values  # Set new values
+        self._propagate(indices)  # Propagate values
+        current_max_value = np.max(values)
+        self.max = max(current_max_value, self.max)
+ 
+    # Updates single value given a tree index for efficiency
+    def _update_index(self, index, value):
+        self.sum_tree[index] = value  # Set new value
+        self._propagate_index(index)  # Propagate value
+        self.max = max(value, self.max)
+ 
+    def append(self, value):
+        self._update_index(self.index + self.tree_start, value)  # Update tree
+        self.index = (self.index + 1) % self.size  # Update index
+        self.full = self.full or self.index == 0  # Save when capacity reached
+        self.max = max(value, self.max)
+ 
+    # Searches for the location of values in sum tree
+    def _retrieve(self, indices, values):
+        children_indices = (indices * 2 + np.expand_dims([1, 2], axis=1)) # Make matrix of children indices
+        # If indices correspond to leaf nodes, return them
+        if children_indices[0, 0] >= self.sum_tree.shape[0]:
+          return indices
+        # If children indices correspond to leaf nodes, bound rare outliers in case total slightly overshoots
+        elif children_indices[0, 0] >= self.tree_start:
+          children_indices = np.minimum(children_indices, self.sum_tree.shape[0] - 1)
+        left_children_values = self.sum_tree[children_indices[0]]
+        successor_choices = np.greater(values, left_children_values).astype(np.int32)  # Classify which values are in left or right branches
+        successor_indices = children_indices[successor_choices, np.arange(indices.size)] # Use classification to index into the indices matrix
+        successor_values = values - successor_choices * left_children_values  # Subtract the left branch values when searching in the right branch
+        return self._retrieve(successor_indices, successor_values)
+ 
+  # Searches for values in sum tree and returns values, data indices and tree indices
+    def find(self, values):
+        indices = self._retrieve(np.zeros(values.shape, dtype=np.int32), values)
+        data_index = indices - self.tree_start
+        return (self.sum_tree[indices], data_index, indices)  # Return values, data indices, tree indices
+ 
+    def total(self):
+        return self.sum_tree[0]
+
+class NStepPrioritizedExperienceReplay:
+    """Nstep Prioritized experienced replay buffer"""
+    def __init__(self,  n, gamma, max_size, input_shape, n_actions, device, alpha, beta, epsilon):
+        self.n = n
+        self.gamma = gamma
+        self.alpha = alpha
+        self.beta = beta
+        self.epsilon = epsilon
+        self.sum_tree = SumTree(max_size)
+        self.max_priority = 0
+        self.device = device
+
+        self.state_memory, self.action_memory, self.reward_memory, self.next_state_memory, self.terminal_memory = self.restart()
+        self.replay_buffer = NStepReplayBuffer(n=self.n,gamma=self.gamma,max_size=max_size,input_shape=input_shape,n_actions=n_actions,device=device)
+
+    def sample_buffer(self, batch_size):
+
+        return self.replay_buffer.sample_buffer(batch_size), weights, index
+
+    def update_priority(self, tderror, index):
+        '''
+        After learning 
+        '''
+        tderror = (tderror + self.epsilon)**self.alpha
+        self.max_priority = max(self.max_priority, T.max(tderror).to(self.device))
+        self.sum_tree.update(index, tderror)
+
+    def store_transition(self, state, action, reward, state_, done):
+        self.replay_buffer.store_transition(state, action, reward, state_, done)
+        if len(self.replay_buffer.state_memory) == self.n:
+            self.sum_tree.append(self.max_priority)
 
 if __name__ == "__main__":
     nstepreplay = NStepReplayBuffer(3, gamma=0.99, max_size=10, input_shape=2, n_actions=4, device="cpu")
