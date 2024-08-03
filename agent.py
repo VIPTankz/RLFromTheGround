@@ -153,6 +153,8 @@ class NStep3DQN(DDDQN):
 
     def __init__(self, gamma, epsilon, lr, input_dims, batch_size, replay_buffer, n_actions,n=3, fc1_dims=256, fc2_dims=256, max_mem_size=100000, eps_steps=100000, eps_min=0.01, update_target=100):
 
+        self.device = T.device('cuda:0' if T.cuda.is_available() else 'cpu')
+
         replay_buffer = NStepReplayBuffer(n=n, gamma=gamma, max_size=max_mem_size, input_shape=input_dims, n_actions=n_actions, device=self.device)
 
         DDDQN.__init__(self, gamma=gamma, epsilon=epsilon, lr=lr, input_dims=input_dims, batch_size=batch_size, n_actions=n_actions, max_mem_size=max_mem_size, eps_steps=eps_steps, fc1_dims=fc1_dims, fc2_dims=fc2_dims, replay_buffer=replay_buffer, update_target=update_target, eps_min=eps_min)
