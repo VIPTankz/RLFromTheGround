@@ -1,7 +1,8 @@
 from agent import DQN, DoubleDQN, DDDQN, NStep3DQN, NoisyNStep3DQN
 import numpy as np
 import time
-import torch
+from replay_buffer import NStepPrioritizedExperienceReplay
+import torch as T
 import gymnasium as gym
 import os
 import argparse
@@ -12,6 +13,10 @@ def make_env(game):
     return gym.make("ALE/" + game + "-ram-v5")
 
 def initialize_agent():
+    GAMMA = 0.99
+    MAX_REPLAY_SIZE = 1000000
+    DEVICE = T.device('cuda:0' if T.cuda.is_available() else 'cpu')
+    prioritized_replay_buffer = NStepPrioritizedExperienceReplay(n=3,gamma=GAMMA,max_size=MAX_REPLAY_SIZE,input_shape=env.observation_space.shape[0], n_actions=env.action_space.n, device=DEVICE,alpha=0.5,beta=0.45,epsilon=0.01)
     if agent_name=="DQN":
         return DQN(gamma=0.99, epsilon=1, lr=lr,input_dims=env.observation_space.shape[0],batch_size=batch_size,
                    n_actions=env.action_space.n,max_mem_size=1000000, fc1_dims=fc1_dims, fc2_dims=fc2_dims, update_target=update_target, eps_steps=eps_steps, eps_min=eps_min)
@@ -25,8 +30,7 @@ def initialize_agent():
         return NStep3DQN(gamma=0.99, epsilon=1, lr=lr, input_dims=env.observation_space.shape[0], batch_size=batch_size,
                          n_actions=env.action_space.n, max_mem_size=1000000, fc1_dims=fc1_dims, fc2_dims=fc2_dims, update_target=update_target, eps_steps=eps_steps, eps_min=eps_min)
     elif agent_name=="NoisyNStep3DQN":
-        return NoisyNStep3DQN(gamma=0.99, epsilon=1, lr=lr, input_dims=env.observation_space.shape[0], batch_size=batch_size
-                              , n_actions=env.action_space.n, max_mem_size=1000000, fc1_dims=fc1_dims, fc2_dims=fc2_dims, update_target=update_target, eps_steps=eps_steps, eps_min=eps_min)
+        return NoisyNStep3DQN(gamma=0.99, epsilon=1, lr=lr, input_dims=env.observation_space.shape[0], batch_size=batch_size,replay_buffer=prioritized_replay_buffer, n_actions=env.action_space.n, max_mem_size=1000000, fc1_dims=fc1_dims, fc2_dims=fc2_dims, update_target=update_target, eps_steps=eps_steps, eps_min=eps_min)
     return None
 
 if __name__ == '__main__':

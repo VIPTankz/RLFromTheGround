@@ -157,22 +157,38 @@ class SumTree():
 
 class NStepPrioritizedExperienceReplay:
     """Nstep Prioritized experienced replay buffer"""
-    def __init__(self,  n, gamma, max_size, input_shape, n_actions, device, alpha, beta, epsilon):
+    def __init__(self, n, gamma, max_size, input_shape, n_actions, device, alpha, beta, epsilon):
         self.n = n
         self.gamma = gamma
         self.alpha = alpha
         self.beta = beta
         self.epsilon = epsilon
-        self.sum_tree = SumTree(max_size)
         self.max_priority = 0
         self.device = device
 
         self.state_memory, self.action_memory, self.reward_memory, self.next_state_memory, self.terminal_memory = self.restart()
         self.replay_buffer = NStepReplayBuffer(n=self.n,gamma=self.gamma,max_size=max_size,input_shape=input_shape,n_actions=n_actions,device=device)
+        self.sum_tree = SumTree(max_size)
 
     def sample_buffer(self, batch_size):
 
-        return self.replay_buffer.sample_buffer(batch_size), weights, index
+        segment_length = self.sum_tree.total() / batch_size
+        segment_starts = np.arange(batch_size) * segment_length
+        samples = np.random.uniform(low=0.0,high=segment_length,size=[batch_size])+segment_starts
+        priorities, data_indices, tree_indices = self.sum_tree.find(samples)
+        probs = priorities / self.sum_tree.total()
+        weights = (self.replay_buffer.replay_buffer.mem_cntr * probs)**(-self.beta)
+        weights = weights / weights.max()
+        weights = T.tensor(weights, dtype=T.float32, device=self.device)
+        return self.sample_by_indices(data_indices), weights, tree_indices
+
+    def sample_by_indices(self, indices):
+        states = T.tensor(self.replay_buffer.replay_buffer.state_memory[indices], dtype=T.float32, device=self.device)
+        actions = T.tensor(self.replay_buffer.replay_buffer.action_memory[indices], dtype=T.int64, device=self.device)
+        next_states = T.tensor(self.replay_buffer.replay_buffer.new_state_memory[indices], dtype=T.float32, device=self.device)
+        rewards = T.tensor(self.replay_buffer.replay_buffer.reward_memory[indices], dtype=T.float32, device=self.device)
+        dones = T.tensor(self.replay_buffer.replay_buffer.terminal_memory[indices], dtype=T.bool, device=self.device)
+        return states, actions, rewards, next_states, dones
 
     def update_priority(self, tderror, index):
         '''
@@ -186,6 +202,14 @@ class NStepPrioritizedExperienceReplay:
         self.replay_buffer.store_transition(state, action, reward, state_, done)
         if len(self.replay_buffer.state_memory) == self.n:
             self.sum_tree.append(self.max_priority)
+
+    def restart(self):
+        state_memory = deque([], maxlen=self.n)
+        next_state_memory = deque([], maxlen=self.n)
+        action_memory = deque([], maxlen=self.n)
+        reward_memory = deque([], maxlen=self.n)
+        terminal_memory = deque([], maxlen=self.n)
+        return state_memory, action_memory, reward_memory, next_state_memory, terminal_memory
 
 if __name__ == "__main__":
     nstepreplay = NStepReplayBuffer(3, gamma=0.99, max_size=10, input_shape=2, n_actions=4, device="cpu")
