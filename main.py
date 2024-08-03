@@ -15,22 +15,25 @@ def make_env(game):
 def initialize_agent():
     GAMMA = 0.99
     MAX_REPLAY_SIZE = 1000000
+    EPSILON = 1
     DEVICE = T.device('cuda:0' if T.cuda.is_available() else 'cpu')
-    prioritized_replay_buffer = NStepPrioritizedExperienceReplay(n=3,gamma=GAMMA,max_size=MAX_REPLAY_SIZE,input_shape=env.observation_space.shape[0], n_actions=env.action_space.n, device=DEVICE,alpha=0.5,beta=0.45,epsilon=0.01)
+
+    prioritized_replay_buffer = NStepPrioritizedExperienceReplay(n=3,gamma=GAMMA,max_size=MAX_REPLAY_SIZE,input_shape=env.observation_space.shape[0], n_actions=env.action_space.n, device=DEVICE,alpha=0.5,beta=0.45,epsilon=0.000001)
+
     if agent_name=="DQN":
-        return DQN(gamma=0.99, epsilon=1, lr=lr,input_dims=env.observation_space.shape[0],batch_size=batch_size,
+        return DQN(gamma=GAMMA, epsilon=EPSILON, lr=lr,input_dims=env.observation_space.shape[0],batch_size=batch_size,
                    n_actions=env.action_space.n,max_mem_size=1000000, fc1_dims=fc1_dims, fc2_dims=fc2_dims, update_target=update_target, eps_steps=eps_steps, eps_min=eps_min)
     elif agent_name=="DDQN":
-        return DoubleDQN(gamma=0.99, epsilon=1, lr=lr,input_dims=env.observation_space.shape[0],batch_size=batch_size,
+        return DoubleDQN(gamma=GAMMA, epsilon=EPSILON, lr=lr,input_dims=env.observation_space.shape[0],batch_size=batch_size,
                          n_actions=env.action_space.n,max_mem_size=1000000, fc1_dims=fc1_dims, fc2_dims=fc2_dims, update_target=update_target, eps_steps=eps_steps, eps_min=eps_min)
     elif agent_name=="DDDQN":
-        return DDDQN(gamma=0.99, epsilon=1, lr=lr, input_dims=env.observation_space.shape[0], batch_size=batch_size,
+        return DDDQN(gamma=GAMMA, epsilon=EPSILON, lr=lr, input_dims=env.observation_space.shape[0], batch_size=batch_size,
                      n_actions=env.action_space.n, max_mem_size=1000000, fc1_dims=fc1_dims, fc2_dims=fc2_dims, update_target=update_target, eps_steps=eps_steps, eps_min=eps_min)
     elif agent_name=="NStep3DQN":
-        return NStep3DQN(gamma=0.99, epsilon=1, lr=lr, input_dims=env.observation_space.shape[0], batch_size=batch_size,
+        return NStep3DQN(gamma=GAMMA, epsilon=EPSILON, lr=lr, input_dims=env.observation_space.shape[0], batch_size=batch_size,
                          n_actions=env.action_space.n, max_mem_size=1000000, fc1_dims=fc1_dims, fc2_dims=fc2_dims, update_target=update_target, eps_steps=eps_steps, eps_min=eps_min)
     elif agent_name=="NoisyNStep3DQN":
-        return NoisyNStep3DQN(gamma=0.99, epsilon=1, lr=lr, input_dims=env.observation_space.shape[0], batch_size=batch_size,replay_buffer=prioritized_replay_buffer, n_actions=env.action_space.n, max_mem_size=1000000, fc1_dims=fc1_dims, fc2_dims=fc2_dims, update_target=update_target, eps_steps=eps_steps, eps_min=eps_min)
+        return NoisyNStep3DQN(gamma=GAMMA, epsilon=EPSILON, lr=lr, input_dims=env.observation_space.shape[0], batch_size=batch_size,replay_buffer=prioritized_replay_buffer, n_actions=env.action_space.n, max_mem_size=1000000, fc1_dims=fc1_dims, fc2_dims=fc2_dims, update_target=update_target, eps_steps=eps_steps, eps_min=eps_min)
     return None
 
 if __name__ == '__main__':
