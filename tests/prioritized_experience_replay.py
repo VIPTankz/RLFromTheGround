@@ -12,8 +12,6 @@ sys.path.insert(0, path)
 
 @pytest.fixture
 def rb(mocker):
-    # mocker.patch("package.module.ClassName.function_name", function_that_mocks_it)
-
     GAMMA = 0.99
     MAX_REPLAY_SIZE = 32
     DEVICE = T.device('cuda:0' if T.cuda.is_available() else 'cpu')
@@ -37,21 +35,36 @@ def populate_buffer(num, buffer: NStepPrioritizedExperienceReplay):
         buffer.store_transition(state=np.array(state), action=action, reward=reward,state_=np.array(next_state), done=False)
     return buffer
 
-def test_(rb: NStepPrioritizedExperienceReplay):
+def test_sum_tree_total_equals_to_replay_buffer_counter(rb: NStepPrioritizedExperienceReplay):
+    '''
+    ASSUMPTIONS: The sum tree total should be equal to the number of elements in our nstep RB. Otherwise we might sample zero values from a partially filled buffer.
+    GOAL: Ensure the number of elements in the replay buffer equals the sumtree total.
+    '''
+
+    state = [0, 2, 1]
+    reward = -1
+    action = 1
+    next_state = [1, 0, 100]
+    for _ in range(rb.max_size):
+        state[2] = state[2] + 1
+        next_state[2] = next_state[2] + 1
+        rb.store_transition(state=np.array(state), action=action, reward=reward,state_=np.array(next_state), done=False)
+        assert rb.replay_buffer.replay_buffer.mem_cntr == rb.sum_tree.total()
+
+def test_nstep_stores_correct_experiences(rb: NStepPrioritizedExperienceReplay):
     '''
     ASSUMPTIONS:
     GOAL:
     '''
+    rb = populate_buffer(4, rb)
+    print(rb.replay_buffer.replay_buffer.state_memory[0])
+    assert list(rb.replay_buffer.replay_buffer.state_memory[0]) == [0., 2., 2.]
+    assert list(rb.replay_buffer.replay_buffer.new_state_memory[0]) == [1., 0., 103.] # should skip 101 and 102
+    assert rb.replay_buffer.replay_buffer.new_state_memory[0]==-1-0.99-0.99**2
 
-    rb = populate_buffer(20, rb)
-    print(rb.replay_buffer.replay_buffer.state_memory)
-    print(rb.replay_buffer.replay_buffer.reward_memory)
-    print(rb.replay_buffer.replay_buffer.new_state_memory)
-        # self.sample_by_indices(data_indices), weights, tree_indices
-    print(rb.sample_buffer(batch_size=2)[0])
-    print(f"******")
-    print(rb.sample_buffer(batch_size=2)[1])
-    print(f"******")
-    print(rb.sample_buffer(batch_size=2)[2])
-
+def test_priorities_are_calculated_correctly_for_large_error(rb: NStepPrioritizedExperienceReplay):
+    '''
+    ASSUMPTIONS:
+    GOAL:
+    '''
     assert 1==0

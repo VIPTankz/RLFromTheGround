@@ -60,6 +60,7 @@ class NStepReplayBuffer:
         return self.replay_buffer.sample_buffer(batch_size)
 
     def store_transition(self, state, action, reward, state_, done):
+        stored = False
         if len(self.state_memory) == self.n:
             state_0 = self.state_memory[0]
             action_0 = self.action_memory[0]
@@ -73,12 +74,14 @@ class NStepReplayBuffer:
                     break
             self.replay_buffer.store_transition(state=state_0, action=action_0, reward=reward_0,
                                                 state_=self.next_state_memory[-1], done=done_0)
+            stored = True
 
         self.state_memory.append(state)
         self.next_state_memory.append(state_)
         self.action_memory.append(action)
         self.reward_memory.append(reward)
         self.terminal_memory.append(done)
+        return stored
 
 # SumTree
 # a binary tree data structure where the parent’s value is the sum of its children
@@ -163,8 +166,9 @@ class NStepPrioritizedExperienceReplay:
         self.alpha = alpha
         self.beta = beta
         self.epsilon = epsilon
-        self.max_priority = 0
+        self.max_priority = 1
         self.device = device
+        self.max_size = max_size
 
         self.state_memory, self.action_memory, self.reward_memory, self.next_state_memory, self.terminal_memory = self.restart()
         self.replay_buffer = NStepReplayBuffer(n=self.n,gamma=self.gamma,max_size=max_size,input_shape=input_shape,n_actions=n_actions,device=device)
@@ -199,8 +203,8 @@ class NStepPrioritizedExperienceReplay:
         self.sum_tree.update(index, tderror)
 
     def store_transition(self, state, action, reward, state_, done):
-        self.replay_buffer.store_transition(state, action, reward, state_, done)
-        if len(self.replay_buffer.state_memory) == self.n:
+        stored = self.replay_buffer.store_transition(state, action, reward, state_, done)
+        if stored:
             self.sum_tree.append(self.max_priority)
 
     def restart(self):
