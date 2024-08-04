@@ -10,8 +10,7 @@ from replay_buffer import NStepPrioritizedExperienceReplay, NStepReplayBuffer, R
 
 
 class DQN:
-    def __init__(self, gamma, epsilon, lr, input_dims, batch_size, replay_buffer, n_actions, max_mem_size=100000, eps_steps=100000,
-                 fc1_dims=256, fc2_dims=256, update_target=100, eps_min=0.01):
+    def __init__(self, gamma, epsilon, lr, input_dims, batch_size, replay_buffer, n_actions, max_mem_size=100000, eps_steps=100000, fc1_dims=256, fc2_dims=256, update_target=100, eps_min=0.01):
         self.name = "DQN"
         self.gamma = gamma
         self.lr = lr
