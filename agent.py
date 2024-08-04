@@ -51,7 +51,7 @@ class DQN:
 
     def choose_action(self, observation):
         if np.random.random() > self.epsilon.value:
-            state = T.tensor(np.array([observation / 255]), dtype=T.float32).to(self.device)
+            state = T.tensor(np.array([observation / self.replay_buffer.get_state_normalization()]), dtype=T.float32).to(self.device)
             actions = self.online_net.forward(state)
             action = T.argmax(actions).item()
         else:

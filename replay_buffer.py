@@ -16,6 +16,9 @@ class ReplayBuffer(object):
         self.device = device
         self.STATE_NORMALIZATION = 255
 
+    def get_state_normalization(self):
+        return self.STATE_NORMALIZATION
+
     def store_transition(self, state, action, reward, state_, done):
         index = self.mem_cntr % self.mem_size
         self.state_memory[index] = state / self.STATE_NORMALIZATION
@@ -47,6 +50,9 @@ class NStepReplayBuffer:
 
         self.state_memory, self.action_memory, self.reward_memory, self.next_state_memory, self.terminal_memory = self.restart()
         self.replay_buffer = ReplayBuffer(max_size, input_shape, n_actions, device)
+
+    def get_state_normalization(self):
+        return self.replay_buffer.STATE_NORMALIZATION
 
     def restart(self):
         state_memory = deque([], maxlen=self.n)
@@ -173,6 +179,9 @@ class NStepPrioritizedExperienceReplay:
         self.state_memory, self.action_memory, self.reward_memory, self.next_state_memory, self.terminal_memory = self.restart()
         self.replay_buffer = NStepReplayBuffer(n=self.n,gamma=self.gamma,max_size=max_size,input_shape=input_shape,n_actions=n_actions,device=device)
         self.sum_tree = SumTree(max_size)
+
+    def get_state_normalization(self):
+        return self.replay_buffer.replay_buffer.STATE_NORMALIZATION
 
     def sample_buffer(self, batch_size):
 
