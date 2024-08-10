@@ -176,9 +176,20 @@ class NStepPrioritizedExperienceReplay:
         self.device = device
         self.max_size = max_size
 
+        # to keep track of the minimum priority so far
+        self.priority_min = [float('inf') for _ in range(2 * self.max_size)]
+        self.next_index_min = 0
+
         self.state_memory, self.action_memory, self.reward_memory, self.next_state_memory, self.terminal_memory = self.restart()
         self.replay_buffer = NStepReplayBuffer(n=self.n,gamma=self.gamma,max_size=max_size,input_shape=input_shape,n_actions=n_actions,device=device)
         self.sum_tree = SumTree(max_size)
+
+    def _set_priority_min(self, idx, priority_alpha):
+        idx += self.max_size
+        self.priority_min[idx] = priority_alpha
+        while idx >= 2:
+            idx //= 2
+            self.priority_min[idx] = min(self.priority_min[2 * idx], self.priority_min[2 * idx + 1])
 
     def get_state_normalization(self):
         return self.replay_buffer.replay_buffer.STATE_NORMALIZATION
@@ -190,8 +201,10 @@ class NStepPrioritizedExperienceReplay:
         samples = np.random.uniform(low=0.0,high=segment_length,size=[batch_size])+segment_starts
         priorities, data_indices, tree_indices = self.sum_tree.find(samples)
         probs = priorities / self.sum_tree.total()
+        prob_min = self.priority_min[1] / self.sum_tree.total() # calculate max weight
+        max_weight = (prob_min * self.max_size) ** (-self.beta) # calculate max weight
         weights = (self.replay_buffer.replay_buffer.mem_cntr * probs)**(-self.beta)
-        weights = weights / weights.max()
+        weights = weights / max_weight # normalize by maxweight of the entire sumtree
         weights = T.tensor(weights, dtype=T.float32, device=self.device)
         return self.sample_by_indices(data_indices), weights, tree_indices
 
@@ -210,11 +223,15 @@ class NStepPrioritizedExperienceReplay:
         tderror = (tderror + self.epsilon)**self.alpha
         self.max_priority = max(self.max_priority, T.max(tderror).to(self.device))
         self.sum_tree.update(index, tderror)
+        self._set_priority_min(idx=index, priority_alpha=tderror)
 
     def store_transition(self, state, action, reward, state_, done):
         stored = self.replay_buffer.store_transition(state, action, reward, state_, done)
         if stored:
             self.sum_tree.append(self.max_priority)
+            idx = self.next_index_min
+            self.next_index_min = (idx + 1) % self.max_size
+            self._set_priority_min(priority_alpha=self.max_priority, idx=idx) # TODO sqrt?
 
     def restart(self):
         state_memory = deque([], maxlen=self.n)
