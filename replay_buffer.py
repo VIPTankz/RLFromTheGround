@@ -202,10 +202,9 @@ class NStepPrioritizedExperienceReplay:
         priorities, data_indices, tree_indices = self.sum_tree.find(samples)
         probs = priorities / self.sum_tree.total()
         prob_min = self.priority_min[1] / self.sum_tree.total() # calculate max weight
-        max_weight = (prob_min * self.max_size) ** (-self.beta) # calculate max weight
-        weights = (self.replay_buffer.replay_buffer.mem_cntr * probs)**(-self.beta)
+        max_weight = (prob_min * self.replay_buffer.replay_buffer.mem_cntr) ** (-self.beta) # calculate max weight
+        weights = T.tensor((self.replay_buffer.replay_buffer.mem_cntr * probs)**(-self.beta), dtype=T.float32, device=self.device)
         weights = weights / max_weight # normalize by maxweight of the entire sumtree
-        weights = T.tensor(weights, dtype=T.float32, device=self.device)
         return self.sample_by_indices(data_indices), weights, tree_indices
 
     def sample_by_indices(self, indices):
@@ -220,18 +219,19 @@ class NStepPrioritizedExperienceReplay:
         '''
         After learning 
         '''
-        tderror = (tderror + self.epsilon)**self.alpha
-        self.max_priority = max(self.max_priority, T.max(tderror).to(self.device))
+        tderror = (tderror.cpu().detach().numpy() + self.epsilon)**self.alpha
+        self.max_priority = max(self.max_priority, max(tderror))
         self.sum_tree.update(index, tderror)
-        self._set_priority_min(idx=index, priority_alpha=tderror)
+        for idx, priority in zip(index, tderror):
+            self._set_priority_min(idx=idx-self.max_size+1, priority_alpha=priority)
 
     def store_transition(self, state, action, reward, state_, done):
         stored = self.replay_buffer.store_transition(state, action, reward, state_, done)
         if stored:
-            self.sum_tree.append(self.max_priority)
             idx = self.next_index_min
             self.next_index_min = (idx + 1) % self.max_size
-            self._set_priority_min(priority_alpha=self.max_priority, idx=idx) # TODO sqrt?
+            self._set_priority_min(priority_alpha=self.max_priority, idx=idx)
+            self.sum_tree.append(self.max_priority)
 
     def restart(self):
         state_memory = deque([], maxlen=self.n)

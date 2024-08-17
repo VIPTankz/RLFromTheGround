@@ -33,7 +33,7 @@ def initialize_agent():
         return NStep3DQN(gamma=GAMMA, epsilon=EPSILON, lr=lr, input_dims=env.observation_space.shape[0], batch_size=batch_size,
                          n_actions=env.action_space.n, max_mem_size=1000000, fc1_dims=fc1_dims, fc2_dims=fc2_dims, update_target=update_target, eps_steps=eps_steps, eps_min=eps_min)
     elif agent_name=="NoisyNStep3DQN":
-        return NoisyNStep3DQN(gamma=GAMMA, epsilon=EPSILON, lr=lr, input_dims=env.observation_space.shape[0], batch_size=batch_size,replay_buffer=prioritized_replay_buffer, n_actions=env.action_space.n, max_mem_size=1000000, fc1_dims=fc1_dims, fc2_dims=fc2_dims, update_target=update_target, eps_steps=eps_steps, eps_min=eps_min)
+        return NoisyNStep3DQN(gamma=GAMMA, epsilon=EPSILON, lr=lr, input_dims=env.observation_space.shape[0], batch_size=batch_size,replay_buffer=prioritized_replay_buffer, n_actions=env.action_space.n, max_mem_size=MAX_REPLAY_SIZE, fc1_dims=fc1_dims, fc2_dims=fc2_dims, update_target=update_target, eps_steps=eps_steps, eps_min=eps_min)
     return None
 
 if __name__ == '__main__':
