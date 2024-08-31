@@ -14,7 +14,7 @@ def make_env(game):
 
 def initialize_agent():
     GAMMA = 0.99
-    MAX_REPLAY_SIZE = 1000000
+    MAX_REPLAY_SIZE = 1048576
     EPSILON = 1
     DEVICE = T.device('cuda:0' if T.cuda.is_available() else 'cpu')
 
